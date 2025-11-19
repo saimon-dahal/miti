@@ -1,4 +1,4 @@
-# Maintainer: Your Name <your.email@example.com>
+# Maintainer: Saimon Dahal <saimondahal66@gmail.com>
 pkgname=miti
 pkgver=0.1.0
 pkgrel=1
