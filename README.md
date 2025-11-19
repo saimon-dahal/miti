@@ -2,7 +2,7 @@
 
 A beautiful terminal user interface (TUI) calendar viewer that displays both Gregorian (AD) and Nepali (BS/Bikram Sambat) calendars side-by-side with seamless conversion between the two systems.
 
-![Miti Screenshot](imgs/screenshot.png)
+![Miti Screenshot](imgs/calendar.png)
 
 ## Features
 
@@ -133,7 +133,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Author
 
-Your Name - [@saimon-dahal](https://github.com/saimon-dahal)
+Saimon Dahal - [@saimon-dahal](https://github.com/saimon-dahal)
 
 ## Support
 
