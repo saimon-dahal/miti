@@ -72,16 +72,6 @@ miti
 - `?` - Show help screen
 - `q` / `Esc` - Quit application
 
-## Screenshots
-
-### Main View
-The main interface shows both calendars with date information on the right.
-
-### Date Input Modal
-Press `a` or `b` to open a centered modal for date input.
-
-### Help Screen
-Press `?` to view the complete help screen with all keybindings.
 
 ## Technical Details
 
