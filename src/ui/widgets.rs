@@ -44,11 +44,9 @@ pub fn render_keybindings(theme: &Theme) -> Paragraph<'static> {
         .block(Block::default().borders(Borders::ALL).title("Keybindings"))
 }
 
-pub fn render_date_info<'a>(current_date: NaiveDate, error: Option<&'a String>, theme: &'a Theme) -> Paragraph<'a> {
-    let mut lines = vec![];
-    
-    // Day of week
-    let day_of_week = match current_date.weekday() {
+// Helper function to get day of week
+fn get_day_of_week(date: NaiveDate) -> &'static str {
+    match date.weekday() {
         chrono::Weekday::Mon => "Monday",
         chrono::Weekday::Tue => "Tuesday",
         chrono::Weekday::Wed => "Wednesday",
@@ -56,46 +54,155 @@ pub fn render_date_info<'a>(current_date: NaiveDate, error: Option<&'a String>, 
         chrono::Weekday::Fri => "Friday",
         chrono::Weekday::Sat => "Saturday",
         chrono::Weekday::Sun => "Sunday",
-    };
+    }
+}
+
+pub fn render_today_info<'a>(theme: &'a Theme) -> Paragraph<'a> {
+    let mut lines = vec![];
+    let today = chrono::Local::now().date_naive();
     
-    // BS Date
-    if let Ok(bs_date) = ad_to_bs(current_date) {
+    lines.push(Line::from(vec![
+        Span::styled("AD: ", theme.label_style()),
+        Span::raw(format!("{}", today)),
+    ]));
+    
+    if let Ok(today_bs) = ad_to_bs(today) {
         lines.push(Line::from(vec![
-            Span::styled("AD: ", theme.label_style()),
-            Span::raw(format!("{}", current_date)),
-            Span::styled(" → ", theme.muted_style()),
             Span::styled("BS: ", theme.label_style()),
-            Span::raw(format!("{} ", bs_date.to_string())),
-            Span::styled(format!("({})", day_of_week), theme.muted_style()),
-        ]));
-    } else {
-        lines.push(Line::from(vec![
-            Span::styled("AD: ", theme.label_style()),
-            Span::raw(format!("{} ", current_date)),
-            Span::styled(format!("({})", day_of_week), theme.muted_style()),
+            Span::raw(today_bs.to_string()),
         ]));
     }
     
-    lines.push(Line::from(""));
+    lines.push(Line::from(vec![
+        Span::styled("Day: ", theme.label_style()),
+        Span::raw(get_day_of_week(today)),
+    ]));
     
-    // Today's date if different
+    Paragraph::new(lines)
+        .block(Block::default().borders(Borders::ALL).title("Today"))
+        .wrap(Wrap { trim: true })
+}
+
+pub fn render_selected_info<'a>(current_date: NaiveDate, error: Option<&'a String>, theme: &'a Theme) -> Paragraph<'a> {
+    let mut lines = vec![];
     let today = chrono::Local::now().date_naive();
-    if current_date != today {
+    
+    lines.push(Line::from(vec![
+        Span::styled("AD: ", theme.label_style()),
+        Span::raw(format!("{}", current_date)),
+    ]));
+    
+    if let Ok(bs_date) = ad_to_bs(current_date) {
         lines.push(Line::from(vec![
-            Span::styled("Today:", theme.header_style()),
+            Span::styled("BS: ", theme.label_style()),
+            Span::raw(bs_date.to_string()),
+        ]));
+    }
+    
+    lines.push(Line::from(vec![
+        Span::styled("Day: ", theme.label_style()),
+        Span::raw(get_day_of_week(current_date)),
+    ]));
+    
+    // Only show delta if different from today
+    if current_date != today {
+        lines.push(Line::from(""));
+        
+        let diff = current_date.signed_duration_since(today).num_days();
+        let diff_text = if diff > 0 {
+            format!("{} days ahead", diff)
+        } else {
+            format!("{} days ago", -diff)
+        };
+        
+        lines.push(Line::from(vec![
+            Span::styled("Δ: ", theme.label_style()),
+            Span::raw(diff_text),
+        ]));
+    }
+    
+    // Error message if any
+    if let Some(err) = error {
+        lines.push(Line::from(""));
+        lines.push(Line::from(""));
+        lines.push(Line::from(vec![
+            Span::styled("Error", theme.error_style()),
+        ]));
+        lines.push(Line::from(vec![
+            Span::styled(err, theme.error_style()),
+        ]));
+    }
+    
+    Paragraph::new(lines)
+        .block(Block::default().borders(Borders::ALL).title("Selected"))
+        .wrap(Wrap { trim: true })
+}
+
+// Deprecated: kept for backward compatibility, will be removed
+pub fn render_date_info<'a>(current_date: NaiveDate, error: Option<&'a String>, theme: &'a Theme) -> Paragraph<'a> {
+    let mut lines = vec![];
+    
+    let today = chrono::Local::now().date_naive();
+    
+    // Helper function to get day of week
+    let get_day_of_week = |date: NaiveDate| -> &'static str {
+        match date.weekday() {
+            chrono::Weekday::Mon => "Monday",
+            chrono::Weekday::Tue => "Tuesday",
+            chrono::Weekday::Wed => "Wednesday",
+            chrono::Weekday::Thu => "Thursday",
+            chrono::Weekday::Fri => "Friday",
+            chrono::Weekday::Sat => "Saturday",
+            chrono::Weekday::Sun => "Sunday",
+        }
+    };
+    
+    // TODAY section
+    lines.push(Line::from(vec![
+        Span::styled("TODAY", theme.header_style()),
+    ]));
+    
+    lines.push(Line::from(vec![
+        Span::styled("AD: ", theme.label_style()),
+        Span::raw(format!("{}", today)),
+    ]));
+    
+    if let Ok(today_bs) = ad_to_bs(today) {
+        lines.push(Line::from(vec![
+            Span::styled("BS: ", theme.label_style()),
+            Span::raw(today_bs.to_string()),
+        ]));
+    }
+    
+    lines.push(Line::from(vec![
+        Span::styled("Day: ", theme.label_style()),
+        Span::raw(get_day_of_week(today)),
+    ]));
+    
+    // Only show SELECTED section if different from today
+    if current_date != today {
+        lines.push(Line::from(""));
+        
+        lines.push(Line::from(vec![
+            Span::styled("SELECTED", theme.header_style()),
         ]));
         
         lines.push(Line::from(vec![
             Span::styled("AD: ", theme.label_style()),
-            Span::raw(format!("{}", today)),
+            Span::raw(format!("{}", current_date)),
         ]));
         
-        if let Ok(today_bs) = ad_to_bs(today) {
+        if let Ok(bs_date) = ad_to_bs(current_date) {
             lines.push(Line::from(vec![
                 Span::styled("BS: ", theme.label_style()),
-                Span::raw(today_bs.to_string()),
+                Span::raw(bs_date.to_string()),
             ]));
         }
+        
+        lines.push(Line::from(vec![
+            Span::styled("Day: ", theme.label_style()),
+            Span::raw(get_day_of_week(current_date)),
+        ]));
         
         lines.push(Line::from(""));
         
@@ -109,7 +216,7 @@ pub fn render_date_info<'a>(current_date: NaiveDate, error: Option<&'a String>, 
         
         lines.push(Line::from(vec![
             Span::styled("Δ: ", theme.label_style()),
-            Span::styled(diff_text, theme.muted_style()),
+            Span::raw(diff_text),
         ]));
     }
     

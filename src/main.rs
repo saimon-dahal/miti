@@ -252,13 +252,23 @@ fn ui(f: &mut ratatui::Frame, app: &App) {
     let bs_calendar = render_bs_calendar(app);
     f.render_widget(bs_calendar, calendar_chunks[1]);
 
-    // Date info panel
-    let date_info = ui::widgets::render_date_info(
+    // Date info panels - split vertically
+    let info_chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+        .split(main_chunks[1]);
+
+    // Today info panel
+    let today_info = ui::widgets::render_today_info(&app.theme);
+    f.render_widget(today_info, info_chunks[0]);
+
+    // Selected date info panel
+    let selected_info = ui::widgets::render_selected_info(
         app.current_date_ad,
         app.error_message.as_ref(),
         &app.theme,
     );
-    f.render_widget(date_info, main_chunks[1]);
+    f.render_widget(selected_info, info_chunks[1]);
 
     // Keybindings
     let keybindings = ui::widgets::render_keybindings(&app.theme);
