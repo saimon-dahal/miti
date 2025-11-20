@@ -27,7 +27,6 @@ enum InputMode {
     Normal,
     EnteringAD,
     EnteringBS,
-    Help,
 }
 
 struct App {
@@ -189,9 +188,7 @@ fn run_app<B: ratatui::backend::Backend>(
                         app.input_buffer.clear();
                         app.error_message = None;
                     }
-                    KeyCode::Char('?') => {
-                        app.input_mode = InputMode::Help;
-                    }
+
                     _ => {}
                 },
                 InputMode::EnteringAD | InputMode::EnteringBS => match key.code {
@@ -208,9 +205,7 @@ fn run_app<B: ratatui::backend::Backend>(
                     }
                     _ => {}
                 },
-                InputMode::Help => {
-                    app.input_mode = InputMode::Normal;
-                }
+
             }
         }
     }
@@ -296,11 +291,7 @@ fn ui(f: &mut ratatui::Frame, app: &App) {
             f.render_widget(Clear, modal_area);
             f.render_widget(modal, modal_area);
         }
-        InputMode::Help => {
-            let help_area = ui::help::get_help_modal_area(f.area());
-            let help = ui::help::render_help_screen(&app.theme);
-            f.render_widget(help, help_area);
-        }
+
         _ => {}
     }
 }
