@@ -2,7 +2,7 @@ use chrono::{Datelike, NaiveDate};
 use ratatui::{
     layout::Rect,
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, Wrap},
+    widgets::{Block, Borders, Clear, Paragraph, Wrap},
 };
 
 use crate::calendar::conversion::ad_to_bs;
@@ -245,7 +245,7 @@ pub fn render_input_modal<'a>(
     theme: &'a Theme,
 ) -> (Rect, Paragraph<'a>) {
     let modal_width = 50;
-    let modal_height = 9;
+    let modal_height = 5;
     
     let modal_x = (area.width.saturating_sub(modal_width)) / 2;
     let modal_y = (area.height.saturating_sub(modal_height)) / 2;
@@ -264,34 +264,31 @@ pub fn render_input_modal<'a>(
     };
     
     let lines = vec![
-        Line::from(""),
-        Line::from(vec![
-            Span::styled("Format: ", theme.label_style()),
-            Span::styled("YYYY-MM-DD", theme.muted_style()),
-        ]),
-        Line::from(""),
         Line::from(vec![
             Span::raw("> "),
             Span::styled(input_buffer, theme.title_style()),
             Span::styled("│", theme.title_style().add_modifier(ratatui::style::Modifier::SLOW_BLINK)),
         ]),
         Line::from(""),
-        Line::from(""),
         Line::from(vec![
             Span::styled("Enter", theme.key_style()),
-            Span::raw(" submit"),
-            Span::styled(" │ ", theme.muted_style()),
+            Span::raw(" submit "),
             Span::styled("Esc", theme.key_style()),
             Span::raw(" cancel"),
         ]),
     ];
     
     let modal = Paragraph::new(lines)
+        .style(ratatui::style::Style::default()
+            .bg(ratatui::style::Color::Rgb(30, 30, 30))
+            .fg(theme.text))
         .block(
             Block::default()
                 .borders(Borders::ALL)
                 .title(title)
-                .style(theme.modal_style())
+                .style(ratatui::style::Style::default()
+                    .bg(ratatui::style::Color::Rgb(30, 30, 30))
+                    .fg(theme.text))
                 .border_style(theme.modal_border_style()),
         );
     

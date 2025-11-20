@@ -26,7 +26,7 @@ impl NepaliDate {
     }
     
     pub fn to_string(&self) -> String {
-        format!("{:04}/{:02}/{:02}", self.year, self.month, self.day)
+        format!("{:04}-{:02}-{:02}", self.year, self.month, self.day)
     }
 }
 

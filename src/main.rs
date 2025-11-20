@@ -13,7 +13,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout},
     style::Style,
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, Wrap},
+    widgets::{Block, Borders, Clear, Paragraph, Wrap},
     Terminal,
 };
 use std::io;
@@ -283,6 +283,7 @@ fn ui(f: &mut ratatui::Frame, app: &App) {
                 f.area(),
                 &app.theme,
             );
+            f.render_widget(Clear, modal_area);
             f.render_widget(modal, modal_area);
         }
         InputMode::EnteringBS => {
@@ -292,6 +293,7 @@ fn ui(f: &mut ratatui::Frame, app: &App) {
                 f.area(),
                 &app.theme,
             );
+            f.render_widget(Clear, modal_area);
             f.render_widget(modal, modal_area);
         }
         InputMode::Help => {
