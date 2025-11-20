@@ -6,7 +6,6 @@ pub struct Theme {
     pub success: Color,
     pub alert: Color,
     pub muted: Color,
-    pub background: Color,
     pub text: Color,
 }
 
@@ -18,7 +17,6 @@ impl Theme {
             success: Color::Green,
             alert: Color::Red,
             muted: Color::Gray,
-            background: Color::Black,
             text: Color::White,
         }
     }
@@ -69,12 +67,6 @@ impl Theme {
         Style::default()
             .fg(self.primary)
             .add_modifier(Modifier::BOLD)
-    }
-
-    pub fn modal_style(&self) -> Style {
-        Style::default()
-            .bg(self.background)
-            .fg(self.text)
     }
 
     pub fn modal_border_style(&self) -> Style {

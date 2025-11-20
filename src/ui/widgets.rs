@@ -2,7 +2,7 @@ use chrono::{Datelike, NaiveDate};
 use ratatui::{
     layout::Rect,
     text::{Line, Span},
-    widgets::{Block, Borders, Clear, Paragraph, Wrap},
+    widgets::{Block, Borders, Paragraph, Wrap},
 };
 
 use crate::calendar::conversion::ad_to_bs;
@@ -138,105 +138,6 @@ pub fn render_selected_info<'a>(current_date: NaiveDate, error: Option<&'a Strin
         .wrap(Wrap { trim: true })
 }
 
-// Deprecated: kept for backward compatibility, will be removed
-pub fn render_date_info<'a>(current_date: NaiveDate, error: Option<&'a String>, theme: &'a Theme) -> Paragraph<'a> {
-    let mut lines = vec![];
-    
-    let today = chrono::Local::now().date_naive();
-    
-    // Helper function to get day of week
-    let get_day_of_week = |date: NaiveDate| -> &'static str {
-        match date.weekday() {
-            chrono::Weekday::Mon => "Monday",
-            chrono::Weekday::Tue => "Tuesday",
-            chrono::Weekday::Wed => "Wednesday",
-            chrono::Weekday::Thu => "Thursday",
-            chrono::Weekday::Fri => "Friday",
-            chrono::Weekday::Sat => "Saturday",
-            chrono::Weekday::Sun => "Sunday",
-        }
-    };
-    
-    // TODAY section
-    lines.push(Line::from(vec![
-        Span::styled("TODAY", theme.header_style()),
-    ]));
-    
-    lines.push(Line::from(vec![
-        Span::styled("AD: ", theme.label_style()),
-        Span::raw(format!("{}", today)),
-    ]));
-    
-    if let Ok(today_bs) = ad_to_bs(today) {
-        lines.push(Line::from(vec![
-            Span::styled("BS: ", theme.label_style()),
-            Span::raw(today_bs.to_string()),
-        ]));
-    }
-    
-    lines.push(Line::from(vec![
-        Span::styled("Day: ", theme.label_style()),
-        Span::raw(get_day_of_week(today)),
-    ]));
-    
-    // Only show SELECTED section if different from today
-    if current_date != today {
-        lines.push(Line::from(""));
-        
-        lines.push(Line::from(vec![
-            Span::styled("SELECTED", theme.header_style()),
-        ]));
-        
-        lines.push(Line::from(vec![
-            Span::styled("AD: ", theme.label_style()),
-            Span::raw(format!("{}", current_date)),
-        ]));
-        
-        if let Ok(bs_date) = ad_to_bs(current_date) {
-            lines.push(Line::from(vec![
-                Span::styled("BS: ", theme.label_style()),
-                Span::raw(bs_date.to_string()),
-            ]));
-        }
-        
-        lines.push(Line::from(vec![
-            Span::styled("Day: ", theme.label_style()),
-            Span::raw(get_day_of_week(current_date)),
-        ]));
-        
-        lines.push(Line::from(""));
-        
-        // Days difference
-        let diff = current_date.signed_duration_since(today).num_days();
-        let diff_text = if diff > 0 {
-            format!("{} days ahead", diff)
-        } else {
-            format!("{} days ago", -diff)
-        };
-        
-        lines.push(Line::from(vec![
-            Span::styled("Δ: ", theme.label_style()),
-            Span::raw(diff_text),
-        ]));
-    }
-    
-    // Error message if any
-    if let Some(err) = error {
-        lines.push(Line::from(""));
-        lines.push(Line::from(""));
-        lines.push(Line::from(vec![
-            Span::styled("Error", theme.error_style()),
-        ]));
-        lines.push(Line::from(vec![
-            Span::styled(err, theme.error_style()),
-        ]));
-    }
-    
-    Paragraph::new(lines)
-        .block(Block::default().borders(Borders::ALL).title("Date Info"))
-        .wrap(Wrap { trim: true })
-}
-
 
 pub fn render_input_modal<'a>(
     input_mode: &'a str,
@@ -263,16 +164,25 @@ pub fn render_input_modal<'a>(
         _ => "Input",
     };
     
+    // Truncate input buffer to fit within modal (accounting for "> " and cursor)
+    let max_input_len = (modal_width as usize).saturating_sub(6); // 2 borders + 2 padding + "> " + cursor
+    let display_buffer = if input_buffer.len() > max_input_len {
+        &input_buffer[input_buffer.len().saturating_sub(max_input_len)..]
+    } else {
+        input_buffer
+    };
+    
     let lines = vec![
         Line::from(vec![
             Span::raw("> "),
-            Span::styled(input_buffer, theme.title_style()),
+            Span::styled(display_buffer, theme.title_style()),
             Span::styled("│", theme.title_style().add_modifier(ratatui::style::Modifier::SLOW_BLINK)),
         ]),
         Line::from(""),
         Line::from(vec![
             Span::styled("Enter", theme.key_style()),
-            Span::raw(" submit "),
+            Span::raw(" submit"),
+            Span::styled(" │ ", theme.muted_style()),
             Span::styled("Esc", theme.key_style()),
             Span::raw(" cancel"),
         ]),
@@ -280,12 +190,12 @@ pub fn render_input_modal<'a>(
     
     let modal = Paragraph::new(lines)
         .style(ratatui::style::Style::default()
-            .bg(ratatui::style::Color::Rgb(30, 30, 30))
             .fg(theme.text))
         .block(
             Block::default()
                 .borders(Borders::ALL)
                 .title(title)
+                .padding(ratatui::widgets::Padding::horizontal(1))
                 .style(ratatui::style::Style::default()
                     .bg(ratatui::style::Color::Rgb(30, 30, 30))
                     .fg(theme.text))
